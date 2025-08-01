@@ -1,0 +1,298 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppointmentStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  REFUNDED
+}
+
+enum MedicineType {
+  TABLET
+  SYRUP
+  INJECTION
+  CAPSULE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum IllnessType {
+  CHRONIC
+  ACUTE
+  INFECTIOUS
+}
+
+enum TestType {
+  BLOOD
+  XRAY
+  URINE
+  MRI
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  OWNER
+}
+
+model User {
+  id                   Int            @id @default(autoincrement())
+  full_name            String
+  phone                String
+  email                String         @unique
+  hashed_password      String
+  hashed_refresh_token String?
+  gender               String
+  birth_date           DateTime
+  is_active            Boolean        @default(false)
+  langId               Int
+  role                 Role
+  lang                 Lang           @relation(fields: [langId], references: [id])
+  activation_link      String?        @unique
+  appointments         Appointment[]
+  notifications        Notification[]
+  payments             Payment[]
+  reviews              Review[]
+  Doctor               Doctor[]
+
+  @@map("users")
+}
+
+model Doctor {
+  id          Int           @id @default(autoincrement())
+  specialty   String
+  experience  Int
+  hired_date  DateTime
+  gender      Gender
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id])
+  Appointment Appointment[]
+  Review      Review[]
+}
+
+model Admin {
+  id                   Int     @id @default(autoincrement())
+  name                 String
+  email                String  @unique
+  hashed_password      String
+  hashed_refresh_token String?
+  is_active            Boolean @default(true)
+  is_creator           Boolean @default(false)
+
+  @@map("admin")
+}
+
+model Appointment {
+  id               Int               @id @default(autoincrement())
+  patientId        Int
+  reserved_date    DateTime
+  doctorId         Int
+  status           AppointmentStatus
+  patient          User              @relation(fields: [patientId], references: [id])
+  doctor           Doctor            @relation(fields: [doctorId], references: [id])
+  diagnosis        Diagnosis?
+  appointmentTests AppointmentTest[]
+  testPayments     Test_payment[]
+  payments         Payment[]
+
+  @@map("appointment")
+}
+
+model Diagnosis {
+  id             Int            @id @default(autoincrement())
+  appointmentId  Int            @unique
+  illness_type   IllnessType
+  diagnosed_date DateTime
+  description    String
+  appointment    Appointment    @relation(fields: [appointmentId], references: [id])
+  prescriptions  Prescription[]
+
+  @@map("diagnosis")
+}
+
+model Prescription {
+  id                 Int                     @id @default(autoincrement())
+  reason             String
+  solution           String
+  treatmentId        Int
+  requires_treatment Boolean
+  diagnosisId        Int
+  treatment          Treatments              @relation(fields: [treatmentId], references: [id])
+  diagnosis          Diagnosis               @relation(fields: [diagnosisId], references: [id])
+  medicines          PrescriptionMedicines[]
+
+  @@map("prescription")
+}
+
+model PrescriptionMedicines {
+  id             Int          @id @default(autoincrement())
+  prescriptionId Int
+  medicineId     Int
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id])
+  medicine       Medicines    @relation(fields: [medicineId], references: [id])
+
+  @@map("prescription_medicines")
+}
+
+model Medicines {
+  id            Int                     @id @default(autoincrement())
+  type          MedicineType
+  name          String
+  ingredients   String
+  prescriptions PrescriptionMedicines[]
+
+  @@map("medicines")
+}
+
+model Treatments {
+  id            Int            @id @default(autoincrement())
+  type          String
+  price         Decimal
+  advantage     String
+  conditions    String
+  prescriptions Prescription[]
+  payments      Payment[]
+
+  @@map("treatments")
+}
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  treatmentId    Int
+  payment_date   DateTime
+  payment_method PaymentMethod
+  status         PaymentStatus
+  patientId      Int
+  amount         Decimal
+  treatment      Treatments    @relation(fields: [treatmentId], references: [id])
+  patient        User          @relation(fields: [patientId], references: [id])
+  Appointment    Appointment?  @relation(fields: [appointmentId], references: [id])
+  appointmentId  Int?
+
+  @@map("payments")
+}
+
+model Notification {
+  id            Int    @id @default(autoincrement())
+  read          String
+  message       String
+  notified_date String
+  userId        Int
+  user          User   @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model Review {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  rating   Int
+  doctorId Int
+  comment  String
+  user     User   @relation(fields: [userId], references: [id])
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  @@map("reviews")
+}
+
+model Lang {
+  id    Int    @id @default(autoincrement())
+  name  String
+  users User[]
+
+  @@map("lang")
+}
+
+model Clinics {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  opened_date DateTime
+  districtId  Int
+  ownerId     Int
+  rating      Int
+  district    District @relation(fields: [districtId], references: [id])
+
+  @@map("clinics")
+}
+
+model District {
+  id       Int       @id @default(autoincrement())
+  name     String
+  regionId Int
+  region   Region    @relation(fields: [regionId], references: [id])
+  clinics  Clinics[]
+
+  @@map("district")
+}
+
+model Region {
+  id        Int        @id @default(autoincrement())
+  name      String
+  districts District[]
+
+  @@map("regions")
+}
+
+model Test {
+  id               Int               @id @default(autoincrement())
+  type             TestType
+  name             String
+  description      String
+  reason           String
+  price            Decimal
+  appointmentTests AppointmentTest[]
+  testPayments     Test_payment[]
+
+  @@map("tests")
+}
+
+model AppointmentTest {
+  id            Int         @id @default(autoincrement())
+  testId        Int
+  appointmentId Int
+  test          Test        @relation(fields: [testId], references: [id])
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@map("appointment_tests")
+}
+
+model Test_payment {
+  id             Int           @id @default(autoincrement())
+  appointmentId  Int
+  testId         Int
+  payment_method PaymentMethod
+  payment_status PaymentStatus
+  appointment    Appointment   @relation(fields: [appointmentId], references: [id])
+  test           Test          @relation(fields: [testId], references: [id])
+
+  @@map("test_payment")
+}

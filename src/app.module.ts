@@ -8,6 +8,17 @@ import { RegionModule } from "./region/region.module";
 import { DistrictModule } from "./district/district.module";
 import { AdminsModule } from "./admins/admins.module";
 import { AuthModule } from "./auth/auth.module";
+import { PaymentModule } from './payment/payment.module';
+import { AppointmentModule } from './appointment/appointment.module';
+import { TestsModule } from './tests/tests.module';
+import { AppointmentTestModule } from './appointment_test/appointment_test.module';
+import { TestPaymentModule } from './test_payment/test_payment.module';
+import { TreatmentModule } from './treatment/treatment.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { DiagnosisModule } from './diagnosis/diagnosis.module';
+import { PrescriptionModule } from './prescription/prescription.module';
+import { MedicineModule } from './medicine/medicine.module';
+import { PrescriptionMedicinesModule } from './prescription_medicines/prescription_medicines.module';
 
 @Module({
   imports: [
@@ -20,6 +31,17 @@ import { AuthModule } from "./auth/auth.module";
     AdminsModule,
     AuthModule,
     DoctorModule,
+    PaymentModule,
+    AppointmentModule,
+    TestsModule,
+    AppointmentTestModule,
+    TestPaymentModule,
+    TreatmentModule,
+    NotificationsModule,
+    DiagnosisModule,
+    PrescriptionModule,
+    MedicineModule,
+    PrescriptionMedicinesModule,
   ],
   controllers: [],
   providers: [],

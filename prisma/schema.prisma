@@ -121,7 +121,6 @@ model Appointment {
   diagnosis        Diagnosis?
   appointmentTests AppointmentTest[]
   testPayments     Test_payment[]
-  payments         Payment[]
 
   @@map("appointment")
 }
@@ -194,8 +193,6 @@ model Payment {
   amount         Decimal
   treatment      Treatments    @relation(fields: [treatmentId], references: [id])
   patient        User          @relation(fields: [patientId], references: [id])
-  Appointment    Appointment?  @relation(fields: [appointmentId], references: [id])
-  appointmentId  Int?
 
   @@map("payments")
 }

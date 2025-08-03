@@ -7,13 +7,22 @@ import { connect } from "http2";
 @Injectable()
 export class PaymentService {
   constructor(private readonly prismaService: PrismaService) {}
-  create(createPaymentDto: CreatePaymentDto) {
+  async create(createPaymentDto: CreatePaymentDto) {
+    const treatment = await this.prismaService.treatments.findUnique({
+      where: { id: createPaymentDto.treatmentId },
+      select: { price: true },
+    });
+
+    if (!treatment) {
+      throw new Error("Treatment not found");
+    }
+
     return this.prismaService.payment.create({
       data: {
         payment_date: createPaymentDto.payment_date,
         payment_method: createPaymentDto.payment_method,
         status: createPaymentDto.status,
-        amount: createPaymentDto.amount,
+        amount: treatment.price,
         treatment: { connect: { id: createPaymentDto.treatmentId } },
         patient: { connect: { id: createPaymentDto.patientId } },
       },
@@ -21,18 +30,26 @@ export class PaymentService {
   }
 
   findAll() {
-    return `This action returns all payment`;
+    return this.prismaService.payment.findMany({
+      include: {
+        treatment: true,
+        patient: true,
+      },
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} payment`;
+    return this.prismaService.payment.findUnique({ where: { id } });
   }
 
   update(id: number, updatePaymentDto: UpdatePaymentDto) {
-    return `This action updates a #${id} payment`;
+    return this.prismaService.payment.update({
+      where: { id },
+      data: updatePaymentDto,
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} payment`;
+    return this.prismaService.payment.delete({ where: { id } });
   }
 }

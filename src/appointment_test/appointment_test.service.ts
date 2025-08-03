@@ -1,26 +1,52 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAppointmentTestDto } from './dto/create-appointment_test.dto';
-import { UpdateAppointmentTestDto } from './dto/update-appointment_test.dto';
+import { Injectable } from "@nestjs/common";
+import { CreateAppointmentTestDto } from "./dto/create-appointment_test.dto";
+import { UpdateAppointmentTestDto } from "./dto/update-appointment_test.dto";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class AppointmentTestService {
+  constructor(private readonly prismaService: PrismaService) {}
+
   create(createAppointmentTestDto: CreateAppointmentTestDto) {
-    return 'This action adds a new appointmentTest';
+    return this.prismaService.appointmentTest.create({
+      data: {
+        test: { connect: { id: createAppointmentTestDto.testId } },
+        appointment: {
+          connect: { id: createAppointmentTestDto.appointmentId },
+        },
+      },
+    });
   }
 
   findAll() {
-    return `This action returns all appointmentTest`;
+    return this.prismaService.appointmentTest.findMany({
+      include: {
+        test: true,
+        appointment: true,
+      },
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} appointmentTest`;
+    return this.prismaService.appointmentTest.findUnique({
+      where: { id },
+      include: {
+        test: true,
+        appointment: true,
+      },
+    });
   }
 
   update(id: number, updateAppointmentTestDto: UpdateAppointmentTestDto) {
-    return `This action updates a #${id} appointmentTest`;
+    return this.prismaService.appointmentTest.update({
+      where: { id },
+      data: updateAppointmentTestDto,
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} appointmentTest`;
+    return this.prismaService.appointmentTest.delete({
+      where: { id },
+    });
   }
 }

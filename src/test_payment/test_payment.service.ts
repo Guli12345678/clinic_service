@@ -1,26 +1,44 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTestPaymentDto } from './dto/create-test_payment.dto';
-import { UpdateTestPaymentDto } from './dto/update-test_payment.dto';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateTestPaymentDto } from "./dto/create-test_payment.dto";
+import { UpdateTestPaymentDto } from "./dto/update-test_payment.dto";
 
 @Injectable()
 export class TestPaymentService {
-  create(createTestPaymentDto: CreateTestPaymentDto) {
-    return 'This action adds a new testPayment';
+  constructor(private readonly prismaService: PrismaService) {}
+
+  create(createtest_paymentDto: CreateTestPaymentDto) {
+    return this.prismaService.test_payment.create({
+      data: {
+        payment_method: createtest_paymentDto.payment_method,
+        payment_status: createtest_paymentDto.payment_status,
+        appointment: { connect: { id: createtest_paymentDto.appointmentId } },
+        test: { connect: { id: createtest_paymentDto.testId } },
+      },
+    });
   }
 
   findAll() {
-    return `This action returns all testPayment`;
+    return this.prismaService.test_payment.findMany({
+      include: {
+        appointment: true,
+        test: true,
+      },
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} testPayment`;
+    return this.prismaService.test_payment.findUnique({ where: { id } });
   }
 
-  update(id: number, updateTestPaymentDto: UpdateTestPaymentDto) {
-    return `This action updates a #${id} testPayment`;
+  update(id: number, updatetest_paymentDto: UpdateTestPaymentDto) {
+    return this.prismaService.test_payment.update({
+      where: { id },
+      data: updatetest_paymentDto,
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} testPayment`;
+    return this.prismaService.test_payment.delete({ where: { id } });
   }
 }

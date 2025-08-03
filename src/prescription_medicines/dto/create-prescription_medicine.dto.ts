@@ -1,1 +1,4 @@
-export class CreatePrescriptionMedicineDto {}
+export class CreatePrescriptionMedicineDto {
+  prescriptionId: number;
+  medicineId: number;
+}

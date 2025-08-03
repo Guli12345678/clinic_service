@@ -1,26 +1,50 @@
-import { Injectable } from '@nestjs/common';
-import { CreateDiagnosisDto } from './dto/create-diagnosis.dto';
-import { UpdateDiagnosisDto } from './dto/update-diagnosis.dto';
+import { Injectable } from "@nestjs/common";
+import { CreateDiagnosisDto } from "./dto/create-diagnosis.dto";
+import { UpdateDiagnosisDto } from "./dto/update-diagnosis.dto";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class DiagnosisService {
+  constructor(private readonly prismaService: PrismaService) {}
+
   create(createDiagnosisDto: CreateDiagnosisDto) {
-    return 'This action adds a new diagnosis';
+    return this.prismaService.diagnosis.create({
+      data: {
+        illness_type: createDiagnosisDto.illness_type,
+        diagnosed_date: createDiagnosisDto.diagnosed_date,
+        description: createDiagnosisDto.description,
+        appointment: { connect: { id: createDiagnosisDto.appointmentId } },
+      },
+    });
   }
 
   findAll() {
-    return `This action returns all diagnosis`;
+    return this.prismaService.diagnosis.findMany({
+      include: {
+        appointment: true,
+      },
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} diagnosis`;
+    return this.prismaService.diagnosis.findUnique({
+      where: { id },
+      include: {
+        appointment: true,
+      },
+    });
   }
 
   update(id: number, updateDiagnosisDto: UpdateDiagnosisDto) {
-    return `This action updates a #${id} diagnosis`;
+    return this.prismaService.diagnosis.update({
+      where: { id },
+      data: updateDiagnosisDto,
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} diagnosis`;
+    return this.prismaService.diagnosis.delete({
+      where: { id },
+    });
   }
 }

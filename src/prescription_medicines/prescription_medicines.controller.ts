@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { PrescriptionMedicinesService } from './prescription_medicines.service';
+import { PrescriptionMedicineService } from './prescription_medicines.service';
 import { CreatePrescriptionMedicineDto } from './dto/create-prescription_medicine.dto';
 import { UpdatePrescriptionMedicineDto } from './dto/update-prescription_medicine.dto';
 
 @Controller('prescription-medicines')
 export class PrescriptionMedicinesController {
-  constructor(private readonly prescriptionMedicinesService: PrescriptionMedicinesService) {}
+  constructor(private readonly prescriptionMedicinesService: PrescriptionMedicineService) {}
 
   @Post()
   create(@Body() createPrescriptionMedicineDto: CreatePrescriptionMedicineDto) {

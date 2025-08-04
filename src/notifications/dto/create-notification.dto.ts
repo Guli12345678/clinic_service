@@ -1,5 +1,5 @@
 export class CreateNotificationDto {
-  read: string;
+  read: boolean;
   message: string;
   notified_date: string;
   userId: number;

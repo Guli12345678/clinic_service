@@ -198,12 +198,12 @@ model Payment {
 }
 
 model Notification {
-  id            Int    @id @default(autoincrement())
-  read          String
+  id            Int     @id @default(autoincrement())
+  read          Boolean
   message       String
   notified_date String
   userId        Int
-  user          User   @relation(fields: [userId], references: [id])
+  user          User    @relation(fields: [userId], references: [id])
 
   @@map("notifications")
 }

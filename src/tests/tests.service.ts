@@ -20,7 +20,12 @@ export class TestsService {
   }
 
   findAll() {
-    return this.prismaService.test.findMany();
+    return this.prismaService.test.findMany({
+      include: {
+        appointmentTests: { select: { appointment: true } },
+        testPayments: true,
+      },
+    });
   }
 
   findOne(id: number) {

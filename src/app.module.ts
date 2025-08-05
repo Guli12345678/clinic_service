@@ -19,6 +19,7 @@ import { DiagnosisModule } from './diagnosis/diagnosis.module';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { MedicineModule } from './medicine/medicine.module';
 import { PrescriptionMedicinesModule } from './prescription_medicines/prescription_medicines.module';
+import { ClinicsModule } from './clinics/clinics.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PrescriptionMedicinesModule } from './prescription_medicines/prescripti
     PrescriptionModule,
     MedicineModule,
     PrescriptionMedicinesModule,
+    ClinicsModule,
   ],
   controllers: [],
   providers: [],

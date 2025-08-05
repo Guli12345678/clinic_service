@@ -7,16 +7,26 @@ import { PrismaService } from "../prisma/prisma.service";
 export class PrescriptionService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  create(createPrescriptionDto: CreatePrescriptionDto) {
-    return this.prismaService.prescription.create({
+  async create(createPrescriptionDto: CreatePrescriptionDto) {
+    const { treatmentId, diagnosisId, reason, solution } =
+      createPrescriptionDto;
+
+    let requiresTreatment;
+    if (treatmentId == null) {
+      requiresTreatment = false;
+    }
+
+    const prescription = await this.prismaService.prescription.create({
       data: {
-        reason: createPrescriptionDto.reason,
-        solution: createPrescriptionDto.solution,
-        requires_treatment: createPrescriptionDto.requires_treatment,
-        treatment: { connect: { id: createPrescriptionDto.treatmentId } },
-        diagnosis: { connect: { id: createPrescriptionDto.diagnosisId } },
+        reason,
+        solution,
+        requires_treatment: requiresTreatment,
+        treatment: treatmentId ? { connect: { id: treatmentId } } : undefined,
+        diagnosis: { connect: { id: diagnosisId } },
       },
     });
+
+    return prescription;
   }
 
   findAll() {
@@ -24,6 +34,11 @@ export class PrescriptionService {
       include: {
         treatment: true,
         diagnosis: true,
+        medicines: {
+          select: {
+            medicine: true,
+          },
+        },
       },
     });
   }

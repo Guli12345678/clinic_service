@@ -7,13 +7,24 @@ import { UpdateTestPaymentDto } from "./dto/update-test_payment.dto";
 export class TestPaymentService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  create(createtest_paymentDto: CreateTestPaymentDto) {
+  async create(createtest_paymentDto: CreateTestPaymentDto) {
+    const test = await this.prismaService.test.findUnique({
+      where: { id: createtest_paymentDto.testId },
+      select: { price: true },
+    });
+
+    if (!test) {
+      throw new Error("Treatment not found");
+    }
+
     return this.prismaService.test_payment.create({
       data: {
-        payment_method: createtest_paymentDto.payment_method,
+        date: createtest_paymentDto.date,
         payment_status: createtest_paymentDto.payment_status,
         appointment: { connect: { id: createtest_paymentDto.appointmentId } },
+        payment_method: createtest_paymentDto.payment_method,
         test: { connect: { id: createtest_paymentDto.testId } },
+        price: test.price,
       },
     });
   }
@@ -21,8 +32,8 @@ export class TestPaymentService {
   findAll() {
     return this.prismaService.test_payment.findMany({
       include: {
-        appointment: true,
         test: true,
+        appointment: true,
       },
     });
   }

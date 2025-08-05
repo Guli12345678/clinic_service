@@ -16,7 +16,12 @@ export class DistrictService {
   }
 
   findAll() {
-    return this.prismService.district.findMany({ include: { region: true } });
+    return this.prismService.district.findMany({
+      include: {
+        region: true,
+        clinics: true,
+      },
+    });
   }
 
   findOne(id: number) {

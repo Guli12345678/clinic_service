@@ -26,11 +26,13 @@ export class NotificationService {
     });
   }
 
-  findOne(id: number) {
-    return this.prismaService.notification.findUnique({
-      where: { id },
-      include: {
-        user: true,
+  findOne(userId: number) {
+    return this.prismaService.notification.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        notified_date: "desc",
       },
     });
   }

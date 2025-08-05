@@ -1,14 +1,31 @@
-import { Body, Controller, Get, Post, Req, Res, Param } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  Param,
+  UseGuards,
+} from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { CreateUserDto } from "../users/dto/create-user.dto";
 import { SignInUserDto } from "../users/dto/sign-user.dto";
 import { CreateAdminDto } from "../admins/dto/create-admin.dto";
 import { SignInAdminDto } from "../admins/dto/signin-admin.dto";
 import { Request, Response } from "express";
+import { Roles } from "../common/decorators/roles.decorator";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { CreateDoctorDto } from "../doctor/dto/create-doctor.dto";
+import { UsersService } from "../users/users.service";
+import { AuthGuard } from "../common/guards/jwt-auth.guard";
 
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService
+  ) {}
 
   @Post("user/signup")
   async signUpUser(@Body() dto: CreateUserDto) {
@@ -40,6 +57,8 @@ export class AuthController {
     return this.authService.refreshUserToken(userId, refreshToken, res);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("SUPERADMIN")
   @Post("admin/signup")
   async signUpAdmin(@Body() dto: CreateAdminDto) {
     return this.authService.signUpAdmin(dto);
@@ -63,5 +82,26 @@ export class AuthController {
     @Res() res: Response
   ) {
     return this.authService.refreshAdminToken(adminId, refreshToken, res);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  @Post("users")
+  registerDoctor(@Body() dto: CreateUserDto) {
+    return this.usersService.create({
+      role: "DOCTOR",
+      clinicId: dto.clinicId,
+      confirm_password: dto.confirm_password,
+      password: dto.password,
+      birth_date: dto.birth_date,
+      email: dto.email,
+      specialization: dto.specialization,
+      experience: dto.experience,
+      full_name: dto.full_name,
+      gender: dto.gender,
+      hired_date: dto.hired_date,
+      langId: dto.langId,
+      phone: dto.phone,
+    });
   }
 }

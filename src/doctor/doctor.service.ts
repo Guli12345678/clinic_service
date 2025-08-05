@@ -10,6 +10,7 @@ export class DoctorService {
     return this.prismaService.doctor.create({
       data: {
         userId: createDoctorDto.userId,
+        clinicId: createDoctorDto.clinicId,
         specialty: createDoctorDto.specialization,
         experience: createDoctorDto.experience,
         hired_date: new Date(createDoctorDto.hired_date),
@@ -20,7 +21,13 @@ export class DoctorService {
 
   findAll() {
     return this.prismaService.doctor.findMany({
-      include: { Appointment: true, user: true, Review: true },
+      include: {
+        appointment: true,
+        user: true,
+        review: true,
+        clinic: true,
+        diagnosis: true,
+      },
     });
   }
 

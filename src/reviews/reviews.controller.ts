@@ -1,9 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ReviewsService } from './reviews.service';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from "@nestjs/common";
+import { ReviewsService } from "./reviews.service";
+import { CreateReviewDto } from "./dto/create-review.dto";
+import { UpdateReviewDto } from "./dto/update-review.dto";
+import { Roles } from "../common/decorators/roles.decorator";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { AuthGuard } from "../common/guards/jwt-auth.guard";
 
-@Controller('reviews')
+@Controller("reviews")
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
@@ -12,23 +24,31 @@ export class ReviewsController {
     return this.reviewsService.create(createReviewDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN", "OWNER")
   @Get()
   findAll() {
     return this.reviewsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN", "OWNER")
+  @Get(":id")
+  findOne(@Param("id") id: string) {
     return this.reviewsService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  @Patch(":id")
+  update(@Param("id") id: string, @Body() updateReviewDto: UpdateReviewDto) {
     return this.reviewsService.update(+id, updateReviewDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN")
+  @Delete(":id")
+  remove(@Param("id") id: string) {
     return this.reviewsService.remove(+id);
   }
 }

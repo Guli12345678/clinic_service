@@ -23,17 +23,16 @@ export class AppointmentService {
       include: {
         patient: true,
         doctor: true,
+        appointmentTests: { select: { test: true } },
+        diagnosis: true,
+        testPayments: true,
       },
     });
   }
 
   findOne(id: number) {
-    return this.prismaService.appointment.findUnique({
+    return this.prismaService.appointment.findMany({
       where: { id },
-      include: {
-        patient: true,
-        doctor: true,
-      },
     });
   }
 

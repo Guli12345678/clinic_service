@@ -11,11 +11,10 @@ import {
 import { AdminsService } from "./admins.service";
 import { CreateAdminDto } from "./dto/create-admin.dto";
 import { UpdateAdminDto } from "./dto/update-admin.dto";
-import { Roles } from "src/common/decorators/roles.decorator";
-import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { AuthGuard } from "src/common/guards/jwt-auth.guard";
-import { RolesGuard } from "../common/guards/roles.guard";
 import { AdminSelfGuard } from "../common/guards/admin-self.guard";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { Roles } from "../common/decorators/roles.decorator";
 
 @Controller("admins")
 export class AdminsController {
@@ -36,8 +35,7 @@ export class AdminsController {
   }
 
   @Get(":id")
-  @UseGuards(AuthGuard, RolesGuard, AdminSelfGuard)
-  @Roles("SUPERADMIN")
+  @UseGuards(AuthGuard, AdminSelfGuard)
   findOne(@Param("id") id: string) {
     return this.adminsService.findOne(+id);
   }

@@ -18,11 +18,13 @@ export class MedicineService {
   }
 
   findAll() {
-    return this.prismaService.medicines.findMany();
+    return this.prismaService.medicines.findMany({
+      include: { prescriptions: true },
+    });
   }
 
   findOne(id: number) {
-    return this.prismaService.medicines.findUnique({
+    return this.prismaService.medicines.findMany({
       where: { id },
     });
   }

@@ -11,9 +11,10 @@ import {
 import { DoctorService } from "./doctor.service";
 import { CreateDoctorDto } from "./dto/create-doctor.dto";
 import { UpdateDoctorDto } from "./dto/update-doctor.dto";
-import { OwnerAuthGuard } from "../common/guards/owner-jwt-auth.guard";
 import { Roles } from "../common/decorators/roles.decorator";
-import { OwnerRolesGuard } from "../common/guards/owner-role.guard";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { AuthGuard } from "../common/guards/jwt-auth.guard";
+import { DoctorSelfGuard } from "../common/guards/doctor-self.guard";
 
 @Controller("doctor")
 export class DoctorController {
@@ -23,24 +24,27 @@ export class DoctorController {
   create(@Body() createDoctorDto: CreateDoctorDto) {
     return this.doctorService.create(createDoctorDto);
   }
-
-  @UseGuards(OwnerAuthGuard, OwnerRolesGuard)
-  @Roles("OWNER")
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN", "SUPERADMIN")
   @Get()
   findAll() {
     return this.doctorService.findAll();
   }
 
+  @UseGuards(AuthGuard, DoctorSelfGuard)
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.doctorService.findOne(+id);
   }
 
+  @UseGuards(AuthGuard, DoctorSelfGuard)
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateDoctorDto: UpdateDoctorDto) {
     return this.doctorService.update(+id, updateDoctorDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN", "OWNER")
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.doctorService.remove(+id);

@@ -1,34 +1,56 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { AppointmentService } from './appointment.service';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from "@nestjs/common";
+import { AppointmentService } from "./appointment.service";
+import { CreateAppointmentDto } from "./dto/create-appointment.dto";
+import { UpdateAppointmentDto } from "./dto/update-appointment.dto";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { Roles } from "../common/decorators/roles.decorator";
+import { AuthGuard } from "../common/guards/jwt-auth.guard";
 
-@Controller('appointment')
+@Controller("appointment")
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("DOCTOR")
   @Post()
   create(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentService.create(createAppointmentDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN", "SUPERADMIN")
   @Get()
   findAll() {
     return this.appointmentService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @UseGuards(AuthGuard)
+  @Get(":id")
+  findOne(@Param("id") id: string) {
     return this.appointmentService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAppointmentDto: UpdateAppointmentDto) {
+  @UseGuards(AuthGuard)
+  @Patch(":id")
+  update(
+    @Param("id") id: string,
+    @Body() updateAppointmentDto: UpdateAppointmentDto
+  ) {
     return this.appointmentService.update(+id, updateAppointmentDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @UseGuards(AuthGuard)
+  @Delete(":id")
+  remove(@Param("id") id: string) {
     return this.appointmentService.remove(+id);
   }
 }

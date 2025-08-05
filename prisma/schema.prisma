@@ -81,7 +81,8 @@ model User {
   notifications        Notification[]
   payments             Payment[]
   reviews              Review[]
-  Doctor               Doctor[]
+  doctor               Doctor[]
+  Clinics              Clinics[]
 
   @@map("users")
 }
@@ -92,10 +93,13 @@ model Doctor {
   experience  Int
   hired_date  DateTime
   gender      Gender
+  clinicId    Int
   userId      Int
   user        User          @relation(fields: [userId], references: [id])
-  Appointment Appointment[]
-  Review      Review[]
+  clinic      Clinics       @relation(fields: [clinicId], references: [id])
+  appointment Appointment[]
+  review      Review[]
+  diagnosis   Diagnosis[]
 }
 
 model Admin {
@@ -126,13 +130,16 @@ model Appointment {
 }
 
 model Diagnosis {
-  id             Int            @id @default(autoincrement())
-  appointmentId  Int            @unique
+  id             Int         @id @default(autoincrement())
+  appointmentId  Int         @unique
   illness_type   IllnessType
   diagnosed_date DateTime
   description    String
-  appointment    Appointment    @relation(fields: [appointmentId], references: [id])
-  prescriptions  Prescription[]
+  doctorId       Int
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+
+  doctor        Doctor         @relation(fields: [doctorId], references: [id])
+  prescriptions Prescription[]
 
   @@map("diagnosis")
 }
@@ -141,10 +148,10 @@ model Prescription {
   id                 Int                     @id @default(autoincrement())
   reason             String
   solution           String
-  treatmentId        Int
-  requires_treatment Boolean
+  treatmentId        Int?
+  requires_treatment Boolean?
   diagnosisId        Int
-  treatment          Treatments              @relation(fields: [treatmentId], references: [id])
+  treatment          Treatments?             @relation(fields: [treatmentId], references: [id])
   diagnosis          Diagnosis               @relation(fields: [diagnosisId], references: [id])
   medicines          PrescriptionMedicines[]
 
@@ -237,6 +244,8 @@ model Clinics {
   ownerId     Int
   rating      Int
   district    District @relation(fields: [districtId], references: [id])
+  owner       User     @relation(fields: [ownerId], references: [id])
+  doctors     Doctor[]
 
   @@map("clinics")
 }
@@ -288,6 +297,8 @@ model Test_payment {
   testId         Int
   payment_method PaymentMethod
   payment_status PaymentStatus
+  date           DateTime
+  price          Decimal
   appointment    Appointment   @relation(fields: [appointmentId], references: [id])
   test           Test          @relation(fields: [testId], references: [id])
 

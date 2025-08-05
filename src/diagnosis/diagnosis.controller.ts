@@ -1,34 +1,54 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { DiagnosisService } from './diagnosis.service';
-import { CreateDiagnosisDto } from './dto/create-diagnosis.dto';
-import { UpdateDiagnosisDto } from './dto/update-diagnosis.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from "@nestjs/common";
+import { DiagnosisService } from "./diagnosis.service";
+import { CreateDiagnosisDto } from "./dto/create-diagnosis.dto";
+import { UpdateDiagnosisDto } from "./dto/update-diagnosis.dto";
+import { AuthGuard } from "../common/guards/jwt-auth.guard";
+import { RolesGuard } from "../common/guards/roles.guard";
+import { Roles } from "../common/decorators/roles.decorator";
 
-@Controller('diagnosis')
+@Controller("diagnosis")
 export class DiagnosisController {
   constructor(private readonly diagnosisService: DiagnosisService) {}
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("DOCTOR")
   @Post()
   create(@Body() createDiagnosisDto: CreateDiagnosisDto) {
     return this.diagnosisService.create(createDiagnosisDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles("ADMIN", "SUPERADMIN")
   @Get()
   findAll() {
     return this.diagnosisService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @UseGuards(AuthGuard)
+  @Get(":id")
+  findOne(@Param("id") id: string) {
     return this.diagnosisService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDiagnosisDto: UpdateDiagnosisDto) {
+  @Patch(":id")
+  update(
+    @Param("id") id: string,
+    @Body() updateDiagnosisDto: UpdateDiagnosisDto
+  ) {
     return this.diagnosisService.update(+id, updateDiagnosisDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @Delete(":id")
+  remove(@Param("id") id: string) {
     return this.diagnosisService.remove(+id);
   }
 }

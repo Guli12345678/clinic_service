@@ -58,4 +58,8 @@ export class CreateUserDto {
   @ValidateIf((o) => o.role === "DOCTOR")
   @IsDateString()
   hired_date: string;
+
+  @ValidateIf((o) => o.role === "DOCTOR")
+  @IsInt()
+  clinicId: number;
 }

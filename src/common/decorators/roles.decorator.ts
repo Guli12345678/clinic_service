@@ -1,5 +1,5 @@
 import { SetMetadata } from "@nestjs/common";
-import { Role } from "generated/prisma";
+import { Role } from "generated/prisma"; // Assuming this is an enum
 
 export type AllowedRoles =
   | Role

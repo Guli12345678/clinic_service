@@ -52,6 +52,7 @@ export class UsersService {
       await this.prismaService.doctor.create({
         data: {
           userId: user.id,
+          clinicId: createUserDto.clinicId,
           specialty: specialization,
           experience,
           hired_date: new Date(hired_date),
@@ -64,7 +65,17 @@ export class UsersService {
   }
 
   findAll() {
-    return this.prismaService.user.findMany({ include: { lang: true } });
+    return this.prismaService.user.findMany({
+      include: {
+        lang: true,
+        notifications: true,
+        payments: true,
+        appointments: true,
+        Clinics: true,
+        doctor: true,
+        reviews: true,
+      },
+    });
   }
 
   findOne(id: number) {

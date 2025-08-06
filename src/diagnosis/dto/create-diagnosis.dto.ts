@@ -1,6 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsInt, IsString, IsDateString } from "class-validator";
-import { IllnessType } from "../../../generated/prisma";
+import {
+  IllnessType,
+  LastVisitType,
+  RiskLevel,
+} from "../../../generated/prisma";
 
 export class CreateDiagnosisDto {
   @ApiProperty({ example: 1 })
@@ -22,4 +26,12 @@ export class CreateDiagnosisDto {
   @ApiProperty({ example: "Mild hypertension with early symptoms." })
   @IsString()
   description: string;
+
+  @ApiProperty({ example: LastVisitType.CHECKUP })
+  @IsString()
+  last_visit_type: LastVisitType;
+
+  @ApiProperty({ example: RiskLevel.MODERATE })
+  @IsString()
+  risk_level: RiskLevel;
 }

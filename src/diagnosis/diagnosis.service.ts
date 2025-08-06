@@ -13,6 +13,8 @@ export class DiagnosisService {
         illness_type: createDiagnosisDto.illness_type,
         doctor: { connect: { id: createDiagnosisDto.doctorId } },
         diagnosed_date: createDiagnosisDto.diagnosed_date,
+        last_visit_type: createDiagnosisDto.last_visit_type,
+        risk_level: createDiagnosisDto.risk_level,
         description: createDiagnosisDto.description,
         appointment: { connect: { id: createDiagnosisDto.appointmentId } },
       },
@@ -23,6 +25,7 @@ export class DiagnosisService {
     return this.prismaService.diagnosis.findMany({
       include: {
         appointment: true,
+        doctor: true,
         prescriptions: true,
       },
     });

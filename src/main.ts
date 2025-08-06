@@ -15,7 +15,7 @@ async function start() {
   const config = new DocumentBuilder()
     .setTitle("Medical API")
     .setDescription(
-      "API for managing appointments, diagnostics, treatments, and more."
+      "REST API for managing appointments, diagnostics, treatments, and more. About Clinic"
     )
     .addServer("api")
     .setVersion("1.0")

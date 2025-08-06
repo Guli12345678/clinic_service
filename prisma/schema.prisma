@@ -26,6 +26,21 @@ enum PaymentMethod {
   ONLINE
 }
 
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+enum LastVisitType {
+  EMERGENCY
+  FOLLOWUP
+  CONSULTATION
+  MENTAL_HEALTH
+  CHECKUP
+}
+
 enum PaymentStatus {
   PENDING
   COMPLETED
@@ -130,13 +145,15 @@ model Appointment {
 }
 
 model Diagnosis {
-  id             Int         @id @default(autoincrement())
-  appointmentId  Int         @unique
-  illness_type   IllnessType
-  diagnosed_date DateTime
-  description    String
-  doctorId       Int
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  id              Int           @id @default(autoincrement())
+  appointmentId   Int           @unique
+  illness_type    IllnessType
+  diagnosed_date  DateTime
+  description     String
+  risk_level      RiskLevel     @default(LOW)
+  last_visit_type LastVisitType @default(CHECKUP)
+  doctorId        Int
+  appointment     Appointment   @relation(fields: [appointmentId], references: [id])
 
   doctor        Doctor         @relation(fields: [doctorId], references: [id])
   prescriptions Prescription[]

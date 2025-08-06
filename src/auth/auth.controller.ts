@@ -7,6 +7,7 @@ import {
   Res,
   Param,
   UseGuards,
+  HttpCode,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { CreateUserDto } from "../users/dto/create-user.dto";
@@ -19,6 +20,10 @@ import { RolesGuard } from "../common/guards/roles.guard";
 import { CreateDoctorDto } from "../doctor/dto/create-doctor.dto";
 import { UsersService } from "../users/users.service";
 import { AuthGuard } from "../common/guards/jwt-auth.guard";
+import { GetCurrentUserId } from "../common/decorators/get-current-user-id.decorator";
+import { GetCurrentUser } from "../common/decorators/get-current-user.decorator";
+import { ResponseFields } from "../common/types";
+import { AdminResponseFields } from "../common/types/admin-response.type";
 
 @Controller("auth")
 export class AuthController {
@@ -49,12 +54,9 @@ export class AuthController {
   }
 
   @Post("user/refresh")
-  async refreshUserToken(
-    @Body("userId") userId: number,
-    @Body("refreshToken") refreshToken: string,
-    @Res() res: Response
-  ) {
-    return this.authService.refreshUserToken(userId, refreshToken, res);
+  @HttpCode(200)
+  async refreshUserToken(@Req() req: Request, @Res() res: Response) {
+    return this.authService.refreshUserToken(req, res);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -76,12 +78,9 @@ export class AuthController {
   }
 
   @Post("admin/refresh")
-  async refreshAdminToken(
-    @Body("adminId") adminId: number,
-    @Body("refreshToken") refreshToken: string,
-    @Res() res: Response
-  ) {
-    return this.authService.refreshAdminToken(adminId, refreshToken, res);
+  @HttpCode(200)
+  async refreshAdminToken(@Req() req: Request, @Res() res: Response) {
+    return this.authService.refreshAdminToken(req, res);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

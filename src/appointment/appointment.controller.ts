@@ -19,8 +19,6 @@ import { AuthGuard } from "../common/guards/jwt-auth.guard";
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles("DOCTOR")
   @Post()
   create(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentService.create(createAppointmentDto);

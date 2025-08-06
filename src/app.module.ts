@@ -21,6 +21,7 @@ import { MedicineModule } from './medicine/medicine.module';
 import { PrescriptionMedicinesModule } from './prescription_medicines/prescription_medicines.module';
 import { ClinicsModule } from './clinics/clinics.module';
 import { SmartFiltersModule } from './smart_filters/smart_filters.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SmartFiltersModule } from './smart_filters/smart_filters.module';
     PrescriptionMedicinesModule,
     ClinicsModule,
     SmartFiltersModule,
+    RoomModule,
   ],
   controllers: [],
   providers: [],

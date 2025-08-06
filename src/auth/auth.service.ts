@@ -63,64 +63,48 @@ export class AuthService {
   async signUpUser(createUserDto: CreateUserDto) {
     const condidate = await this.prismaService.user
       .findUnique({ where: { email: createUserDto.email } })
-      .catch((err) => {
-        return null;
-      });
-    if (condidate) {
-      throw new ConflictException("user already exists");
-    }
-    try {
-      const activationLink = randomUUID();
+      .catch(() => null);
+    if (condidate) throw new ConflictException("user already exists");
 
-      const newUser = await this.usersService.create({
-        ...createUserDto,
-        activation_link: activationLink,
-      });
+    const activationLink = randomUUID();
+    const newUser = await this.usersService.create({
+      ...createUserDto,
+      activation_link: activationLink,
+    });
+    await this.mailService.sendMail(newUser, activationLink).catch(() => {
+      throw new ServiceUnavailableException("email da xatolik");
+    });
 
-      try {
-        await this.mailService.sendMail(newUser, activationLink);
-      } catch (error) {
-        throw new ServiceUnavailableException("email da xatolik");
-      }
-      return {
-        message: `Ro\'yhatdan o\'tdingiz. Akkauntni faollashtirish uchun email ni tasdiqlang!`,
-      };
-    } catch (error) {
-      throw error;
-    }
+    return {
+      message: `Ro'yhatdan o'tdingiz. Akkauntni faollashtirish uchun emailni tasdiqlang!`,
+    };
   }
+
   async activateUser(activationLink: string) {
-    if (!activationLink) {
+    if (!activationLink)
       throw new UnauthorizedException("Activation link is required");
-    }
+
     const user = await this.prismaService.user.findFirst({
       where: { activation_link: activationLink },
     });
+    if (!user) throw new NotFoundException("Invalid activation link");
 
-    if (!user) {
-      throw new NotFoundException("Invalid activation link");
-    }
+    if (user.is_active)
+      throw new ConflictException("User account already activated");
 
     await this.prismaService.user.update({
       where: { id: user.id },
       data: { is_active: true },
     });
-
-    if (user.is_active == true) {
-      throw new ConflictException("User account already activated");
-    }
-
     return { message: "User account activated successfully" };
   }
+
   async signin(
     signInUserDto: SignInUserDto,
     res: Response
   ): Promise<ResponseFields> {
     const { email, password } = signInUserDto;
-
-    const user = await this.prismaService.user.findUnique({
-      where: { email },
-    });
+    const user = await this.prismaService.user.findUnique({ where: { email } });
     if (!user) throw new NotFoundException("User not found");
 
     const isValid = await bcrypt.compare(password, user.hashed_password);
@@ -150,62 +134,50 @@ export class AuthService {
   }
 
   async signout(userId: number, res: Response) {
-    const candidate = await this.prismaService.user.updateMany({
-      where: {
-        id: userId,
-        hashed_refresh_token: {
-          not: null,
-        },
-      },
+    await this.prismaService.user.updateMany({
+      where: { id: userId, hashed_refresh_token: { not: null } },
       data: { hashed_refresh_token: null },
     });
-
-    if (!candidate) {
-      throw new ForbiddenException("Access Denied");
-    }
-
     res.clearCookie("refreshToken");
     return true;
   }
 
-  async refreshUserToken(
-    userId: number,
-    refreshToken: string,
-    res: Response
-  ): Promise<ResponseFields> {
-    const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
-    });
+  async refreshUserToken(req: Request, res: Response) {
+    const refreshToken = req.cookies["refreshToken"];
+    if (!refreshToken) throw new UnauthorizedException("No refresh token");
 
-    if (!user || !user.hashed_refresh_token) {
+    const userId = this.jwtService.decode(refreshToken)["id"];
+    const user = await this.prismaService.user.findUnique({
+      where: { id: Number(userId) },
+    });
+    if (!user || !user.hashed_refresh_token)
       throw new UnauthorizedException("Access Denied 1");
-    }
+
     const rtMatches = await bcrypt.compare(
       refreshToken,
       user.hashed_refresh_token
     );
+    if (!rtMatches) throw new ForbiddenException("Token notogri");
 
-    if (!rtMatches) {
-      throw new ForbiddenException("Access Denied 2");
-    }
+    const tokens = await this.generateTokensuser(user);
+    const hashed_refresh_token = await bcrypt.hash(tokens.refreshToken, 10);
 
-    const tokens: Tokens = await this.generateTokensuser(user);
-
-    const hashed_refresh_token = await bcrypt.hash(tokens.refreshToken, 7);
     await this.prismaService.user.update({
       where: { id: user.id },
       data: { hashed_refresh_token },
     });
-    res.cookie("refresh_token", hashed_refresh_token, {
+
+    res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
       secure: true,
+      sameSite: "none",
     });
 
-    return {
+    return res.json({
       message: "User accessToken refreshed",
       userId: Number(user.id),
       accessToken: tokens.accessToken,
-    };
+    });
   }
 
   async generateTokensAdmin(admin: Admin): Promise<Tokens> {
@@ -227,28 +199,23 @@ export class AuthService {
       }),
     ]);
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 
   async signUpAdmin(createAdminDto: CreateAdminDto) {
     const admin = await this.prismaService.admin.findUnique({
       where: { email: createAdminDto.email },
     });
-    if (admin) {
-      throw new ConflictException("This admin already exists");
-    }
+    if (admin) throw new ConflictException("This admin already exists");
     const newAdmin = await this.adminsService.create(createAdminDto);
     return { message: "Admin registered successfully", admin: newAdmin };
   }
+
   async signinAdmin(
     signInAdminDto: SignInAdminDto,
     res: Response
   ): Promise<AdminResponseFields> {
     const { email, password } = signInAdminDto;
-
     const admin = await this.prismaService.admin.findUnique({
       where: { email },
     });
@@ -281,61 +248,49 @@ export class AuthService {
   }
 
   async signoutAdmin(adminId: number, res: Response) {
-    const candidate = await this.prismaService.admin.updateMany({
-      where: {
-        id: adminId,
-        hashed_refresh_token: {
-          not: null,
-        },
-      },
+    await this.prismaService.admin.updateMany({
+      where: { id: adminId, hashed_refresh_token: { not: null } },
       data: { hashed_refresh_token: null },
     });
-
-    if (!candidate) {
-      throw new ForbiddenException("Access Denied");
-    }
-
     res.clearCookie("refreshToken");
     return true;
   }
 
-  async refreshAdminToken(
-    adminId: number,
-    refreshToken: string,
-    res: Response
-  ): Promise<AdminResponseFields> {
-    const admin = await this.prismaService.admin.findUnique({
-      where: { id: adminId },
-    });
+  async refreshAdminToken(req: Request, res: Response) {
+    const refreshToken = req.cookies["refreshToken"];
+    if (!refreshToken) throw new UnauthorizedException("No refresh token");
 
-    if (!admin || !admin.hashed_refresh_token) {
+    const userId = this.jwtService.decode(refreshToken)["id"];
+    const admin = await this.prismaService.admin.findUnique({
+      where: { id: Number(userId) },
+    });
+    if (!admin || !admin.hashed_refresh_token)
       throw new UnauthorizedException("Access Denied 1");
-    }
+
     const rtMatches = await bcrypt.compare(
       refreshToken,
-      admin.hashed_refresh_token
+      String(admin.hashed_refresh_token)
     );
+    if (!rtMatches) throw new ForbiddenException("Token notogri");
 
-    if (!rtMatches) {
-      throw new ForbiddenException("Access Denied 2");
-    }
+    const tokens = await this.generateTokensAdmin(admin);
+    const hashed_refresh_token = await bcrypt.hash(tokens.refreshToken, 10);
 
-    const tokens: Tokens = await this.generateTokensAdmin(admin);
-
-    const hashed_refresh_token = await bcrypt.hash(tokens.refreshToken, 7);
-    await this.prismaService.admin.update({
+    await this.prismaService.user.update({
       where: { id: admin.id },
       data: { hashed_refresh_token },
     });
-    res.cookie("refresh_token", hashed_refresh_token, {
+
+    res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
       secure: true,
+      sameSite: "none",
     });
 
-    return {
+    return res.json({
       message: "Admin accessToken refreshed",
-      adminId: Number(admin.id),
+      userId: Number(admin.id),
       accessToken: tokens.accessToken,
-    };
+    });
   }
 }

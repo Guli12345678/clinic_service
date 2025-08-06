@@ -73,6 +73,7 @@ export class UsersService {
         appointments: true,
         Clinics: true,
         doctor: true,
+        room: true,
         reviews: true,
       },
     });

@@ -78,6 +78,26 @@ enum Role {
   OWNER
 }
 
+enum RoomType {
+  NORMAL
+  ISOLATED_ROOM
+  ISU
+  RECOVERY
+  VIP
+}
+
+model Room {
+  id                  Int      @id @default(autoincrement())
+  type                RoomType @default(NORMAL)
+  floor               Int
+  has_air_conditioner Boolean
+  reserved_date       DateTime
+  finish_date         DateTime
+  patientId           Int      @unique
+
+  patient User @relation(fields: [patientId], references: [id])
+}
+
 model User {
   id                   Int            @id @default(autoincrement())
   full_name            String
@@ -98,6 +118,7 @@ model User {
   reviews              Review[]
   doctor               Doctor[]
   Clinics              Clinics[]
+  room                 Room?
 
   @@map("users")
 }

@@ -8,7 +8,6 @@ export class SuperadminGuard implements CanActivate {
 
     if (!user || typeof user.is_creator !== "boolean") return false;
 
-    // Only creators are Superadmins
     return user.is_creator === true;
   }
 }
